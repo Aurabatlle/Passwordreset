@@ -2,193 +2,231 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Aura e - Password Reset</title>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@2.6.4/dist/email.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Reset</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #4d4d4d;
+      margin: 0;
+      padding: 0;
+      background: #000;
       color: #fff;
+      font-family: Arial, sans-serif;
       display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
       flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 10px;
+    }
+
+    header img {
+      position: absolute;
+      left: 10px;
+      top: 5px;
+      height: 35px;
+    }
+
+    header h1 {
+      font-size: 20px;
+      text-align: center;
       margin: 0;
     }
-    h2 {
-      color: red;
-      margin-bottom: 20px;
+
+    .container {
+      margin-top: 40px;
+      width: 90%;
+      max-width: 400px;
     }
+
     input {
-      width: 300px;
-      padding: 12px;
-      margin: 8px 0;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      background: #333;
-      color: #fff;
-      outline: none;
-      font-size: 15px;
-    }
-    input:focus {
-      border: 1px solid red;
-    }
-    button {
-      background: red;
+      width: 100%;
+      padding: 14px;
+      margin: 10px 0;
       border: none;
-      padding: 12px;
-      margin-top: 12px;
       border-radius: 6px;
-      color: white;
-      font-size: 15px;
+      font-size: 16px;
+    }
+
+    input:focus {
+      outline: none;
+      box-shadow: 0 0 8px #0f0;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #0f0;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
       font-weight: bold;
       cursor: pointer;
-      width: 300px;
-    }
-    button:hover {
-      background: darkred;
-    }
-    .hidden {
-      display: none;
-    }
-    #message {
       margin-top: 15px;
-      font-size: 14px;
+    }
+
+    button:hover {
+      background: #00cc00;
+    }
+
+    /* Popup */
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #111;
       color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      display: none;
+      z-index: 1000;
+      width: 80%;
+      max-width: 300px;
+      box-shadow: 0 0 15px #f00;
+    }
+
+    .popup.error { box-shadow: 0 0 15px #f00; }
+    .popup.success { box-shadow: 0 0 15px #0f0; }
+
+    .popup button {
+      margin-top: 10px;
+      background: #f00;
+    }
+
+    /* Success animation */
+    .success-animation {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .circle {
+      width: 100px;
+      height: 100px;
+      border: 5px solid #0f0;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
+
+    .check {
+      font-size: 60px;
+      color: #0f0;
+      display: none;
     }
   </style>
 </head>
 <body>
-  <h2>Aura e - Password Reset</h2>
 
-  <!-- Step 1 -->
-  <div id="resetStep1">
-    <input type="text" id="emailOrPhone" placeholder="Enter Email or Mobile"><br>
-    <input type="password" id="newPassword" placeholder="New Password"><br>
-    <input type="password" id="confirmPassword" placeholder="Confirm Password"><br>
-    <button onclick="sendOTP()">Change Password</button>
+  <header>
+    <img src="https://i.imghippo.com/files/abcd123.png" alt="Logo"> <!-- Change logo -->
+    <h1>Password Reset</h1>
+  </header>
+
+  <div class="container">
+    <input type="text" id="emailOrMobile" placeholder="Enter Email or Mobile">
+    <button onclick="sendOtp()">Change Password</button>
+
+    <input type="text" id="otp" placeholder="Enter OTP" style="display:none;">
+    <input type="password" id="newPassword" placeholder="New Password (min 6)" style="display:none;">
+    <input type="password" id="confirmPassword" placeholder="Confirm Password" style="display:none;">
+    <button id="resetBtn" onclick="resetPassword()" style="display:none;">Reset Password</button>
   </div>
 
-  <!-- Step 2 -->
-  <div id="resetStep2" class="hidden">
-    <input type="text" id="otpInput" placeholder="Enter OTP"><br>
-    <button onclick="verifyOTP()">Verify OTP</button>
+  <!-- Popup -->
+  <div id="popup" class="popup">
+    <p id="popupMsg"></p>
+    <button onclick="closePopup()">Close</button>
   </div>
 
-  <p id="message"></p>
+  <!-- Success animation -->
+  <div id="successAnim" class="success-animation">
+    <div class="circle" id="circleAnim"></div>
+    <div class="check" id="checkAnim">✔</div>
+  </div>
 
-<script>
-  // Firebase Config
-  const firebaseConfig = {
-    apiKey: "AIzaSyD7pAsdYqkJzDbSsi8xbLsy2X5s0bgP040",
-    authDomain: "aura-battle-main.firebaseapp.com",
-    databaseURL: "https://aura-battle-main-default-rtdb.firebaseio.com",
-    projectId: "aura-battle-main",
-    storageBucket: "aura-battle-main.firebasestorage.app",
-    messagingSenderId: "763779990289",
-    appId: "1:763779990289:web:5caa7bc861e80b6f0b02b0",
-    measurementId: "G-ZZXZ00HK07"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-
-  // EmailJS Init
-  emailjs.init("Hn95Bh2Dkz54UUNZ0");
-
-  let generatedOTP = "";
-  let currentUserId = "";
-  let userName = "";
-  let newPasswordValue = "";
-  let resetCount = 0;
-
-  async function sendOTP() {
-    const emailOrPhone = document.getElementById("emailOrPhone").value.trim();
-    const newPass = document.getElementById("newPassword").value.trim();
-    const confirmPass = document.getElementById("confirmPassword").value.trim();
-    const msg = document.getElementById("message");
-
-    msg.innerText = "";
-
-    if (!emailOrPhone || !newPass || !confirmPass) {
-      msg.innerText = "⚠️ All fields required!";
-      return;
-    }
-    if (newPass.length < 6) {
-      msg.innerText = "⚠️ Password must be at least 6 characters!";
-      return;
-    }
-    if (newPass !== confirmPass) {
-      msg.innerText = "⚠️ Passwords do not match!";
-      return;
+  <script>
+    function showPopup(msg, type="error") {
+      let popup = document.getElementById("popup");
+      let popupMsg = document.getElementById("popupMsg");
+      popup.className = "popup " + type;
+      popupMsg.innerText = msg;
+      popup.style.display = "block";
     }
 
-    // Search in database by email or phone
-    const snapshot = await db.ref("users").once("value");
-    let foundUser = null;
+    function closePopup() {
+      document.getElementById("popup").style.display = "none";
+    }
 
-    snapshot.forEach(child => {
-      let data = child.val();
-      if (data.email === emailOrPhone || data.mobile_number === emailOrPhone) {
-        foundUser = { id: child.key, data: data };
+    function sendOtp() {
+      let emailOrMobile = document.getElementById("emailOrMobile").value.trim();
+      if (!emailOrMobile) {
+        showPopup("Please enter email or mobile!", "error");
+        return;
       }
-    });
+      showPopup("OTP sent successfully!", "success");
 
-    if (!foundUser) {
-      msg.innerText = "⚠️ Email or Mobile not registered!";
-      return;
+      document.getElementById("otp").style.display = "block";
+      document.getElementById("newPassword").style.display = "block";
+      document.getElementById("confirmPassword").style.display = "block";
+      document.getElementById("resetBtn").style.display = "block";
     }
 
-    currentUserId = foundUser.id;
-    userName = foundUser.data.username || "User";
-    resetCount = foundUser.data.reset_count || 0;
+    function resetPassword() {
+      let otp = document.getElementById("otp").value.trim();
+      let newPass = document.getElementById("newPassword").value;
+      let confirmPass = document.getElementById("confirmPassword").value;
 
-    if (resetCount >= 2) {
-      msg.innerText = "⚠️ Only 2 password resets allowed per day!";
-      return;
+      if (!otp) {
+        showPopup("Enter OTP!", "error");
+        return;
+      }
+      if (newPass.length < 6) {
+        showPopup("Password must be at least 6 characters!", "error");
+        return;
+      }
+      if (newPass !== confirmPass) {
+        showPopup("Passwords do not match!", "error");
+        return;
+      }
+
+      // Success Animation
+      let successAnim = document.getElementById("successAnim");
+      let circle = document.getElementById("circleAnim");
+      let check = document.getElementById("checkAnim");
+
+      successAnim.style.display = "flex";
+      setTimeout(() => {
+        circle.style.display = "none";
+        check.style.display = "block";
+      }, 2000);
+
+      setTimeout(() => {
+        successAnim.style.display = "none";
+        showPopup("Password reset successfully!", "success");
+      }, 3500);
     }
-
-    // Generate OTP
-    generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-    newPasswordValue = newPass;
-
-    // Send OTP via EmailJS
-    const templateParams = {
-      to_email: foundUser.data.email,
-      otp_code: generatedOTP,
-      user_name: userName,
-      company_name: "Aura e"
-    };
-
-    emailjs.send("service_3597yeb", "template_galojrg", templateParams)
-      .then(() => {
-        msg.innerText = "✅ OTP sent to your email!";
-        document.getElementById("resetStep1").classList.add("hidden");
-        document.getElementById("resetStep2").classList.remove("hidden");
-      }, (error) => {
-        msg.innerText = "❌ Error sending OTP!";
-        console.error(error);
-      });
-  }
-
-  async function verifyOTP() {
-    const enteredOTP = document.getElementById("otpInput").value.trim();
-    const msg = document.getElementById("message");
-
-    if (enteredOTP === generatedOTP) {
-      await db.ref("users/" + currentUserId).update({
-        password: newPasswordValue,
-        updated_at: new Date().toISOString(),
-        reset_count: (resetCount + 1)
-      });
-      msg.innerText = "✅ Password successfully updated!";
-      document.getElementById("resetStep2").classList.add("hidden");
-    } else {
-      msg.innerText = "❌ Invalid OTP!";
-    }
-  }
-</script>
+  </script>
 </body>
-      </html>
+</html>
