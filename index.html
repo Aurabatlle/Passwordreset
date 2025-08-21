@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,50 +7,50 @@
   <script type="module" src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
   <style>
-    body { margin:0; font-family:Arial,sans-serif; background:#000; color:#fff; text-align:center; }
-    header { background:#111; padding:15px; display:flex; align-items:center; flex-direction:column; }
-    header img { width:60px; margin-bottom:5px; }
-    header h1 { font-size:22px; color:red; margin:0; }
-    .page { display:none; padding:20px; }
-    .active { display:block; }
-    input, button {
-      width:90%; max-width:350px; padding:12px; margin:8px auto; display:block;
-      border:none; border-radius:6px; font-size:16px;
-    }
-    input { background:#222; color:#fff; }
-    button { background:red; color:#fff; font-weight:bold; cursor:pointer; }
-    .otp-inputs { display:flex; justify-content:center; gap:10px; margin:20px 0; }
-    .otp-inputs input { width:45px; height:55px; font-size:20px; text-align:center; }
-    /* Popup */
-    .popup { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7);
-      display:none; align-items:center; justify-content:center; z-index:1000; }
-    .popup-content {
-      background:#111; color:#fff; padding:25px; border-radius:12px; width:80%; max-width:320px;
-      text-align:center; animation:fadeIn 0.3s ease;
-    }
-    .popup button { background:red; padding:8px 16px; border:none; margin-top:12px; border-radius:6px; }
-    .loading { border:4px solid #444; border-top:4px solid red; border-radius:50%; width:35px; height:35px;
-      margin:10px auto; animation:spin 1s linear infinite; }
-    @keyframes spin {100%{transform:rotate(360deg)}}
-    @keyframes fadeIn {from{opacity:0;transform:scale(0.9);}to{opacity:1;transform:scale(1);}}
+    body { margin:0; font-family:Arial, sans-serif; background:#000; color:#fff; text-align:center; }
+    header { background:#111; padding:12px; display:flex; align-items:center; justify-content:center; position:relative; }
+    header img { width:45px; position:absolute; left:12px; top:50%; transform:translateY(-50%); }
+    header h1 { font-size:20px; color:red; margin:0; }.page { display:none; padding:20px; }
+.active { display:block; }
+
+h2 { color:#fff; font-size:18px; margin-bottom:15px; }
+
+input, button {
+  width:90%; max-width:340px; padding:12px; margin:8px auto; display:block;
+  border:none; border-radius:6px; font-size:15px;
+}
+input { background:#1a1a1a; color:#fff; }
+input::placeholder { color:#777; }
+button { background:red; color:#fff; font-weight:bold; cursor:pointer; }
+
+/* OTP */
+.otp-inputs { display:flex; justify-content:center; gap:8px; margin:20px 0; }
+.otp-inputs input { width:38px; height:48px; font-size:18px; text-align:center; border-radius:6px; }
+
+/* Popup */
+.popup { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75);
+  display:none; align-items:center; justify-content:center; z-index:1000; }
+.popup-content {
+  background:#111; color:#fff; padding:22px; border-radius:10px; width:80%; max-width:320px;
+  text-align:center; animation:fadeIn 0.25s ease;
+}
+.popup button { background:red; padding:8px 18px; border:none; margin-top:12px; border-radius:6px; }
+.loading { border:3px solid #333; border-top:3px solid red; border-radius:50%; width:32px; height:32px;
+  margin:10px auto; animation:spin 1s linear infinite; }
+
+@keyframes spin {100%{transform:rotate(360deg)}}
+@keyframes fadeIn {from{opacity:0;transform:scale(0.9);}to{opacity:1;transform:scale(1);}}
+
   </style>
 </head>
-<body>
-
-<header>
+<body><header>
   <img src="logo.png" alt="Aura Battle Logo">
   <h1>Aura Battle</h1>
-</header>
-
-<!-- Page 1: Search -->
-<div class="page active" id="searchPage">
+</header><!-- Page 1: Search --><div class="page active" id="searchPage">
   <h2>Reset your Password</h2>
   <input type="text" id="searchInput" placeholder="Enter Email or Mobile">
   <button onclick="sendOTP()">Send OTP</button>
-</div>
-
-<!-- Page 2: OTP -->
-<div class="page" id="otpPage">
+</div><!-- Page 2: OTP --><div class="page" id="otpPage">
   <h2>Enter OTP</h2>
   <div class="otp-inputs">
     <input maxlength="1" oninput="moveNext(this)">
@@ -62,26 +61,18 @@
     <input maxlength="1" oninput="moveNext(this)">
   </div>
   <button onclick="verifyOTP()">Verify OTP</button>
-</div>
-
-<!-- Page 3: Reset Password -->
-<div class="page" id="resetPage">
+</div><!-- Page 3: Reset Password --><div class="page" id="resetPage">
   <h2>Set New Password</h2>
   <input type="password" id="newPass" placeholder="New Password">
   <input type="password" id="confirmPass" placeholder="Confirm Password">
   <button onclick="resetPassword()">Change Password</button>
-</div>
-
-<!-- Popup -->
-<div class="popup" id="popup">
+</div><!-- Popup --><div class="popup" id="popup">
   <div class="popup-content">
     <div class="loading" id="popupLoading"></div>
     <p id="popupText">Loading...</p>
     <button onclick="hidePopup()">OK</button>
   </div>
-</div>
-
-<script type="module">
+</div><script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
   import { getDatabase, ref, get, child, update } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
@@ -105,7 +96,6 @@
 
   let generatedOTP = "";
   let selectedUserId = "";
-  let otpLimit = {}; // { emailOrPhone: {count, lastDate} }
 
   function showPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -123,11 +113,6 @@
   window.sendOTP = async function() {
     let input = document.getElementById("searchInput").value.trim();
     if (!input) return showPopup("Enter Email or Mobile!");
-
-    let today = new Date().toDateString();
-    if (otpLimit[input] && otpLimit[input].count >= 2 && otpLimit[input].date === today) {
-      return showPopup("You can only request 2 OTPs per day.");
-    }
 
     showPopup("Searching user...", true);
 
@@ -147,12 +132,6 @@
       let email = foundUser.data.email;
       generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
 
-      // Update OTP limit
-      if (!otpLimit[input] || otpLimit[input].date !== today) {
-        otpLimit[input] = {count: 0, date: today};
-      }
-      otpLimit[input].count++;
-
       // Send Email
       await emailjs.send("service_jq0p0la", "template_galojrg", {
         user_name: foundUser.data.email,
@@ -169,7 +148,7 @@
     }
   }
 
-  // OTP input auto-move
+  // OTP auto move
   window.moveNext = function(el) {
     if (el.value.length == 1 && el.nextElementSibling) el.nextElementSibling.focus();
   }
@@ -206,7 +185,5 @@
       showPopup("Error updating password!");
     }
   }
-</script>
-
-</body>
+</script></body>
 </html>
