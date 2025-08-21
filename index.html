@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,49 +9,57 @@
   <script type="module" src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
   <style>
     body { margin:0; font-family:Arial, sans-serif; background:#000; color:#fff; text-align:center; }
-    header { background:#111; padding:12px; display:flex; align-items:center; justify-content:center; position:relative; }
-    header img { width:45px; position:absolute; left:12px; top:50%; transform:translateY(-50%); }
-    header h1 { font-size:20px; color:red; margin:0; }.page { display:none; padding:20px; }
-.active { display:block; }
+    header { background:#111; padding:14px; display:flex; align-items:center; justify-content:center; position:relative; }
+    header img { width:70px; position:absolute; left:12px; top:50%; transform:translateY(-50%); border-radius:10px; }
+    header h1 { font-size:22px; color:red; margin:0; }
 
-h2 { color:#fff; font-size:18px; margin-bottom:15px; }
+    .page { display:none; padding:20px; }
+    .active { display:block; }
 
-input, button {
-  width:90%; max-width:340px; padding:12px; margin:8px auto; display:block;
-  border:none; border-radius:6px; font-size:15px;
-}
-input { background:#1a1a1a; color:#fff; }
-input::placeholder { color:#777; }
-button { background:red; color:#fff; font-weight:bold; cursor:pointer; }
+    h2 { color:#fff; font-size:18px; margin-bottom:15px; }
 
-/* OTP */
-.otp-inputs { display:flex; justify-content:center; gap:8px; margin:20px 0; }
-.otp-inputs input { width:38px; height:48px; font-size:18px; text-align:center; border-radius:6px; }
+    input, button {
+      width:90%; max-width:340px; padding:12px; margin:8px auto; display:block;
+      border:none; border-radius:6px; font-size:15px;
+    }
+    input { background:#1a1a1a; color:#fff; }
+    input::placeholder { color:#777; }
+    button { background:red; color:#fff; font-weight:bold; cursor:pointer; }
 
-/* Popup */
-.popup { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75);
-  display:none; align-items:center; justify-content:center; z-index:1000; }
-.popup-content {
-  background:#111; color:#fff; padding:22px; border-radius:10px; width:80%; max-width:320px;
-  text-align:center; animation:fadeIn 0.25s ease;
-}
-.popup button { background:red; padding:8px 18px; border:none; margin-top:12px; border-radius:6px; }
-.loading { border:3px solid #333; border-top:3px solid red; border-radius:50%; width:32px; height:32px;
-  margin:10px auto; animation:spin 1s linear infinite; }
+    /* OTP */
+    .otp-inputs { display:flex; justify-content:center; gap:10px; margin:20px 0; }
+    .otp-inputs input { width:34px; height:42px; font-size:18px; text-align:center; border-radius:6px; }
 
-@keyframes spin {100%{transform:rotate(360deg)}}
-@keyframes fadeIn {from{opacity:0;transform:scale(0.9);}to{opacity:1;transform:scale(1);}}
+    /* Popup */
+    .popup { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75);
+      display:none; align-items:center; justify-content:center; z-index:1000; }
+    .popup-content {
+      background:#111; color:#fff; padding:22px; border-radius:10px; width:80%; max-width:320px;
+      text-align:center; animation:fadeIn 0.25s ease;
+    }
+    .popup button { background:red; padding:8px 18px; border:none; margin-top:12px; border-radius:6px; }
+    .loading { border:3px solid #333; border-top:3px solid red; border-radius:50%; width:32px; height:32px;
+      margin:10px auto; animation:spin 1s linear infinite; }
 
+    @keyframes spin {100%{transform:rotate(360deg)}}
+    @keyframes fadeIn {from{opacity:0;transform:scale(0.9);}to{opacity:1;transform:scale(1);}}
   </style>
 </head>
-<body><header>
+<body>
+<header>
   <img src="logo.png" alt="Aura Battle Logo">
   <h1>Aura Battle</h1>
-</header><!-- Page 1: Search --><div class="page active" id="searchPage">
+</header>
+
+<!-- Page 1: Search -->
+<div class="page active" id="searchPage">
   <h2>Reset your Password</h2>
   <input type="text" id="searchInput" placeholder="Enter Email or Mobile">
   <button onclick="sendOTP()">Send OTP</button>
-</div><!-- Page 2: OTP --><div class="page" id="otpPage">
+</div>
+
+<!-- Page 2: OTP -->
+<div class="page" id="otpPage">
   <h2>Enter OTP</h2>
   <div class="otp-inputs">
     <input maxlength="1" oninput="moveNext(this)">
@@ -61,18 +70,26 @@ button { background:red; color:#fff; font-weight:bold; cursor:pointer; }
     <input maxlength="1" oninput="moveNext(this)">
   </div>
   <button onclick="verifyOTP()">Verify OTP</button>
-</div><!-- Page 3: Reset Password --><div class="page" id="resetPage">
+</div>
+
+<!-- Page 3: Reset Password -->
+<div class="page" id="resetPage">
   <h2>Set New Password</h2>
   <input type="password" id="newPass" placeholder="New Password">
   <input type="password" id="confirmPass" placeholder="Confirm Password">
   <button onclick="resetPassword()">Change Password</button>
-</div><!-- Popup --><div class="popup" id="popup">
+</div>
+
+<!-- Popup -->
+<div class="popup" id="popup">
   <div class="popup-content">
     <div class="loading" id="popupLoading"></div>
     <p id="popupText">Loading...</p>
     <button onclick="hidePopup()">OK</button>
   </div>
-</div><script type="module">
+</div>
+
+<script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
   import { getDatabase, ref, get, child, update } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
@@ -185,5 +202,6 @@ button { background:red; color:#fff; font-weight:bold; cursor:pointer; }
       showPopup("Error updating password!");
     }
   }
-</script></body>
+</script>
+</body>
 </html>
