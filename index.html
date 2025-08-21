@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Aura e - Password Reset</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@2.6.4/dist/email.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #4d4d4d;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      margin: 0;
+    }
+    h2 {
+      color: red;
+      margin-bottom: 20px;
+    }
+    input {
+      width: 300px;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #333;
+      color: #fff;
+      outline: none;
+      font-size: 15px;
+    }
+    input:focus {
+      border: 1px solid red;
+    }
+    button {
+      background: red;
+      border: none;
+      padding: 12px;
+      margin-top: 12px;
+      border-radius: 6px;
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 300px;
+    }
+    button:hover {
+      background: darkred;
+    }
+    .hidden {
+      display: none;
+    }
+    #message {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <h2>Aura e - Password Reset</h2>
+
+  <!-- Step 1 -->
+  <div id="resetStep1">
+    <input type="text" id="emailOrPhone" placeholder="Enter Email or Mobile"><br>
+    <input type="password" id="newPassword" placeholder="New Password"><br>
+    <input type="password" id="confirmPassword" placeholder="Confirm Password"><br>
+    <button onclick="sendOTP()">Change Password</button>
+  </div>
+
+  <!-- Step 2 -->
+  <div id="resetStep2" class="hidden">
+    <input type="text" id="otpInput" placeholder="Enter OTP"><br>
+    <button onclick="verifyOTP()">Verify OTP</button>
+  </div>
+
+  <p id="message"></p>
+
+<script>
+  // Firebase Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyD7pAsdYqkJzDbSsi8xbLsy2X5s0bgP040",
+    authDomain: "aura-battle-main.firebaseapp.com",
+    databaseURL: "https://aura-battle-main-default-rtdb.firebaseio.com",
+    projectId: "aura-battle-main",
+    storageBucket: "aura-battle-main.firebasestorage.app",
+    messagingSenderId: "763779990289",
+    appId: "1:763779990289:web:5caa7bc861e80b6f0b02b0",
+    measurementId: "G-ZZXZ00HK07"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  // EmailJS Init
+  emailjs.init("Hn95Bh2Dkz54UUNZ0");
+
+  let generatedOTP = "";
+  let currentUserId = "";
+  let userName = "";
+  let newPasswordValue = "";
+  let resetCount = 0;
+
+  async function sendOTP() {
+    const emailOrPhone = document.getElementById("emailOrPhone").value.trim();
+    const newPass = document.getElementById("newPassword").value.trim();
+    const confirmPass = document.getElementById("confirmPassword").value.trim();
+    const msg = document.getElementById("message");
+
+    msg.innerText = "";
+
+    if (!emailOrPhone || !newPass || !confirmPass) {
+      msg.innerText = "⚠️ All fields required!";
+      return;
+    }
+    if (newPass.length < 6) {
+      msg.innerText = "⚠️ Password must be at least 6 characters!";
+      return;
+    }
+    if (newPass !== confirmPass) {
+      msg.innerText = "⚠️ Passwords do not match!";
+      return;
+    }
+
+    // Search in database by email or phone
+    const snapshot = await db.ref("users").once("value");
+    let foundUser = null;
+
+    snapshot.forEach(child => {
+      let data = child.val();
+      if (data.email === emailOrPhone || data.mobile_number === emailOrPhone) {
+        foundUser = { id: child.key, data: data };
+      }
+    });
+
+    if (!foundUser) {
+      msg.innerText = "⚠️ Email or Mobile not registered!";
+      return;
+    }
+
+    currentUserId = foundUser.id;
+    userName = foundUser.data.username || "User";
+    resetCount = foundUser.data.reset_count || 0;
+
+    if (resetCount >= 2) {
+      msg.innerText = "⚠️ Only 2 password resets allowed per day!";
+      return;
+    }
+
+    // Generate OTP
+    generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+    newPasswordValue = newPass;
+
+    // Send OTP via EmailJS
+    const templateParams = {
+      to_email: foundUser.data.email,
+      otp_code: generatedOTP,
+      user_name: userName,
+      company_name: "Aura e"
+    };
+
+    emailjs.send("service_3597yeb", "template_galojrg", templateParams)
+      .then(() => {
+        msg.innerText = "✅ OTP sent to your email!";
+        document.getElementById("resetStep1").classList.add("hidden");
+        document.getElementById("resetStep2").classList.remove("hidden");
+      }, (error) => {
+        msg.innerText = "❌ Error sending OTP!";
+        console.error(error);
+      });
+  }
+
+  async function verifyOTP() {
+    const enteredOTP = document.getElementById("otpInput").value.trim();
+    const msg = document.getElementById("message");
+
+    if (enteredOTP === generatedOTP) {
+      await db.ref("users/" + currentUserId).update({
+        password: newPasswordValue,
+        updated_at: new Date().toISOString(),
+        reset_count: (resetCount + 1)
+      });
+      msg.innerText = "✅ Password successfully updated!";
+      document.getElementById("resetStep2").classList.add("hidden");
+    } else {
+      msg.innerText = "❌ Invalid OTP!";
+    }
+  }
+</script>
+</body>
+      </html>
