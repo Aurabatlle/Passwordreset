@@ -1,207 +1,208 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aura Battle - Reset Password</title>
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
-  <style>
-    body { margin:0; font-family:Arial, sans-serif; background:#000; color:#fff; text-align:center; }
-    header { background:#111; padding:14px; display:flex; align-items:center; justify-content:center; position:relative; }
-    header img { width:110px; position:absolute; left:12px; top:50%; transform:translateY(-50%); border-radius:14px; } /* Bigger logo */
-    header h1 { font-size:22px; color:red; margin:0; }
+<html lang="en">  
+<head>  
+  <meta charset="UTF-8">  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+  <title>Aura Battle - Reset Password</title>  
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>  
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>  
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>  
+  <style>  
+    body { margin:0; font-family:Arial, sans-serif; background:#000; color:#fff; text-align:center; }  
+    header { background:#111; padding:14px; display:flex; align-items:center; justify-content:center; position:relative; }  
+    header img { width:110px; position:absolute; left:12px; top:50%; transform:translateY(-50%); border-radius:14px; } /* Bigger logo */  
+    header h1 { font-size:22px; color:red; margin:0; }  
 
-    .page { display:none; padding:20px; }
-    .active { display:block; }
+    .page { display:none; padding:20px; }  
+    .active { display:block; }  
 
-    h2 { color:#fff; font-size:18px; margin-bottom:15px; }
+    h2 { color:#fff; font-size:18px; margin-bottom:15px; }  
 
-    input, button {
-      width:90%; max-width:340px; padding:12px; margin:8px auto; display:block;
-      border:none; border-radius:6px; font-size:15px;
-    }
-    input { background:#1a1a1a; color:#fff; }
-    input::placeholder { color:#777; }
-    button { background:red; color:#fff; font-weight:bold; cursor:pointer; }
+    input, button {  
+      width:90%; max-width:340px; padding:12px; margin:8px auto; display:block;  
+      border:none; border-radius:6px; font-size:15px;  
+    }  
+    input { background:#1a1a1a; color:#fff; }  
+    input::placeholder { color:#777; }  
+    button { background:red; color:#fff; font-weight:bold; cursor:pointer; }  
 
-    /* OTP */
-    .otp-inputs { display:flex; justify-content:center; gap:8px; margin:20px 0; }
-    .otp-inputs input { width:26px; height:34px; font-size:16px; text-align:center; border-radius:6px; } /* Smaller boxes */
+    /* OTP */  
+    .otp-inputs { display:flex; justify-content:center; gap:8px; margin:20px 0; }  
+    .otp-inputs input { width:26px; height:34px; font-size:16px; text-align:center; border-radius:6px; } /* Smaller boxes */  
 
-    /* Popup */
-    .popup { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75);
-      display:none; align-items:center; justify-content:center; z-index:1000; }
-    .popup-content {
-      background:#111; color:#fff; padding:22px; border-radius:10px; width:80%; max-width:320px;
-      text-align:center; animation:fadeIn 0.25s ease;
-    }
-    .popup button { background:red; padding:8px 18px; border:none; margin-top:12px; border-radius:6px; }
-    .loading { border:3px solid #333; border-top:3px solid red; border-radius:50%; width:32px; height:32px;
-      margin:10px auto; animation:spin 1s linear infinite; }
+    /* Popup */  
+    .popup { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75);  
+      display:none; align-items:center; justify-content:center; z-index:1000; }  
+    .popup-content {  
+      background:#111; color:#fff; padding:22px; border-radius:10px; width:80%; max-width:320px;  
+      text-align:center; animation:fadeIn 0.25s ease;  
+    }  
+    .popup button { background:red; padding:8px 18px; border:none; margin-top:12px; border-radius:6px; }  
+    .loading { border:3px solid #333; border-top:3px solid red; border-radius:50%; width:32px; height:32px;  
+      margin:10px auto; animation:spin 1s linear infinite; }  
 
-    @keyframes spin {100%{transform:rotate(360deg)}}
-    @keyframes fadeIn {from{opacity:0;transform:scale(0.9);}to{opacity:1;transform:scale(1);}}
-  </style>
-</head>
-<body>
-<header>
-  <img src="logo.png" alt="Aura Battle Logo">
-  <h1>Aura Battle</h1>
-</header>
+    @keyframes spin {100%{transform:rotate(360deg)}}  
+    @keyframes fadeIn {from{opacity:0;transform:scale(0.9);}to{opacity:1;transform:scale(1);}}  
+  </style>  
+</head>  
+<body>  
+<header>  
+  <img src="logo.png" alt="Aura Battle Logo">  
+  <h1>Aura Battle</h1>  
+</header>  
 
-<!-- Page 1: Search -->
-<div class="page active" id="searchPage">
-  <h2>Reset your Password</h2>
-  <input type="text" id="searchInput" placeholder="Enter Email or Mobile">
-  <button onclick="sendOTP()">Send OTP</button>
-</div>
+<!-- Page 1: Search -->  
+<div class="page active" id="searchPage">  
+  <h2>Reset your Password</h2>  
+  <input type="text" id="searchInput" placeholder="Enter Email or Mobile">  
+  <button onclick="sendOTP()">Verify Account</button>  
+</div>  
 
-<!-- Page 2: OTP -->
-<div class="page" id="otpPage">
-  <h2>Enter OTP</h2>
-  <div class="otp-inputs">
-    <input maxlength="1" oninput="moveNext(this)">
-    <input maxlength="1" oninput="moveNext(this)">
-    <input maxlength="1" oninput="moveNext(this)">
-    <input maxlength="1" oninput="moveNext(this)">
-    <input maxlength="1" oninput="moveNext(this)">
-    <input maxlength="1" oninput="moveNext(this)">
-  </div>
-  <button onclick="verifyOTP()">Verify OTP</button>
-</div>
+<!-- Page 2: OTP -->  
+<div class="page" id="otpPage">  
+  <h2>Enter OTP</h2>  
+  <div class="otp-inputs">  
+    <input maxlength="1" oninput="moveNext(this)">  
+    <input maxlength="1" oninput="moveNext(this)">  
+    <input maxlength="1" oninput="moveNext(this)">  
+    <input maxlength="1" oninput="moveNext(this)">  
+    <input maxlength="1" oninput="moveNext(this)">  
+    <input maxlength="1" oninput="moveNext(this)">  
+  </div>  
+  <button onclick="verifyOTP()">Verify OTP</button>  
+</div>  
 
-<!-- Page 3: Reset Password -->
-<div class="page" id="resetPage">
-  <h2>Set New Password</h2>
-  <input type="password" id="newPass" placeholder="New Password">
-  <input type="password" id="confirmPass" placeholder="Confirm Password">
-  <button onclick="resetPassword()">Change Password</button>
-</div>
+<!-- Page 3: Reset Password -->  
+<div class="page" id="resetPage">  
+  <h2>Set New Password</h2>  
+  <input type="password" id="newPass" placeholder="New Password">  
+  <input type="password" id="confirmPass" placeholder="Confirm Password">  
+  <button onclick="resetPassword()">Change Password</button>  
+</div>  
 
-<!-- Popup -->
-<div class="popup" id="popup">
-  <div class="popup-content">
-    <div class="loading" id="popupLoading"></div>
-    <p id="popupText">Loading...</p>
-    <button onclick="hidePopup()">OK</button>
-  </div>
-</div>
+<!-- Popup -->  
+<div class="popup" id="popup">  
+  <div class="popup-content">  
+    <div class="loading" id="popupLoading"></div>  
+    <p id="popupText">Loading...</p>  
+    <button onclick="hidePopup()">OK</button>  
+  </div>  
+</div>  
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-  import { getDatabase, ref, get, child, update } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+<script type="module">  
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";  
+  import { getDatabase, ref, get, child, update } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";  
 
-  // Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyD7pAsdYqkJzDbSsi8xbLsy2X5s0bgP040",
-    authDomain: "aura-battle-main.firebaseapp.com",
-    databaseURL: "https://aura-battle-main-default-rtdb.firebaseio.com",
-    projectId: "aura-battle-main",
-    storageBucket: "aura-battle-main.firebasestorage.app",
-    messagingSenderId: "763779990289",
-    appId: "1:763779990289:web:5caa7bc861e80b6f0b02b0",
-    measurementId: "G-ZZXZ00HK07"
-  };
+  // Firebase config  
+  const firebaseConfig = {  
+    apiKey: "AIzaSyD7pAsdYqkJzDbSsi8xbLsy2X5s0bgP040",  
+    authDomain: "aura-battle-main.firebaseapp.com",  
+    databaseURL: "https://aura-battle-main-default-rtdb.firebaseio.com",  
+    projectId: "aura-battle-main",  
+    storageBucket: "aura-battle-main.firebasestorage.app",  
+    messagingSenderId: "763779990289",  
+    appId: "1:763779990289:web:5caa7bc861e80b6f0b02b0",  
+    measurementId: "G-ZZXZ00HK07"  
+  };  
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+  const app = initializeApp(firebaseConfig);  
+  const db = getDatabase(app);  
 
-  // EmailJS init
-  emailjs.init("Hn95Bh2Dkz54UUNZ0");
+  // EmailJS init  
+  emailjs.init("Hn95Bh2Dkz54UUNZ0");  
 
-  let generatedOTP = "";
-  let selectedUserId = "";
+  let generatedOTP = "";  
+  let selectedUserId = "";  
 
-  function showPage(id) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-  }
+  function showPage(id) {  
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));  
+    document.getElementById(id).classList.add('active');  
+  }  
 
-  function showPopup(text, loading = false) {
-    document.getElementById("popup").style.display = "flex";
-    document.getElementById("popupText").innerText = text;
-    document.getElementById("popupLoading").style.display = loading ? "block" : "none";
-  }
-  window.hidePopup = function(){ document.getElementById("popup").style.display = "none"; };
+  function showPopup(text, loading = false) {  
+    document.getElementById("popup").style.display = "flex";  
+    document.getElementById("popupText").innerText = text;  
+    document.getElementById("popupLoading").style.display = loading ? "block" : "none";  
+  }  
+  window.hidePopup = function(){ document.getElementById("popup").style.display = "none"; };  
 
-  // Send OTP
-  window.sendOTP = async function() {
-    let input = document.getElementById("searchInput").value.trim();
-    if (!input) return showPopup("Enter Email or Mobile!");
+  // Send OTP  
+  window.sendOTP = async function() {  
+    let input = document.getElementById("searchInput").value.trim();  
+    if (!input) return showPopup("Enter Email or Mobile!");  
 
-    showPopup("Searching user...", true);
+    showPopup("Searching user...", true);  
 
-    try {
-      const snapshot = await get(child(ref(db), "users"));
-      let foundUser = null;
-      snapshot.forEach(userSnap => {
-        let u = userSnap.val();
-        if (u.email === input || u.mobile_number === input) {
-          foundUser = {id: userSnap.key, data: u};
-        }
-      });
+    try {  
+      const snapshot = await get(child(ref(db), "users"));  
+      let foundUser = null;  
+      snapshot.forEach(userSnap => {  
+        let u = userSnap.val();  
+        if (u.email === input || u.mobile_number === input) {  
+          foundUser = {id: userSnap.key, data: u};  
+        }  
+      });  
 
-      if (!foundUser) return showPopup("User not found!");
+      if (!foundUser) return showPopup("User not found!");  
 
-      selectedUserId = foundUser.id;
-      let email = foundUser.data.email;
-      generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+      selectedUserId = foundUser.id;  
+      let email = foundUser.data.email;  
+      let name = foundUser.data.name;  // ✅ get name from DB  
+      generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();  
 
-      // Send Email
-      await emailjs.send("service_jq0p0la", "template_galojrg", {
-        user_name: foundUser.data.email,
-        otp_code: generatedOTP,
-        email: email
-      });
+      // Send Email  
+      await emailjs.send("service_jq0p0la", "template_galojrg", {  
+        user_name: name,        // ✅ use name instead of email  
+        otp_code: generatedOTP,  
+        email: email  
+      });  
 
-      showPopup("Check your email OTP and verify");
-      setTimeout(()=>{ hidePopup(); showPage("otpPage"); }, 2000);
+      showPopup("Check your email OTP and verify");  
+      setTimeout(()=>{ hidePopup(); showPage("otpPage"); }, 2000);  
 
-    } catch (err) {
-      console.error(err);
-      showPopup("Error sending OTP!");
-    }
-  }
+    } catch (err) {  
+      console.error(err);  
+      showPopup("Error sending OTP!");  
+    }  
+  }  
 
-  // OTP auto move
-  window.moveNext = function(el) {
-    if (el.value.length == 1 && el.nextElementSibling) el.nextElementSibling.focus();
-  }
+  // OTP auto move  
+  window.moveNext = function(el) {  
+    if (el.value.length == 1 && el.nextElementSibling) el.nextElementSibling.focus();  
+  }  
 
-  // Verify OTP
-  window.verifyOTP = function() {
-    let inputs = document.querySelectorAll(".otp-inputs input");
-    let entered = "";
-    inputs.forEach(i=> entered += i.value);
-    if (entered === generatedOTP) {
-      showPopup("OTP Verified Successfully!");
-      setTimeout(()=>{ hidePopup(); showPage("resetPage"); },1500);
-    } else {
-      showPopup("Invalid OTP!");
-    }
-  }
+  // Verify OTP  
+  window.verifyOTP = function() {  
+    let inputs = document.querySelectorAll(".otp-inputs input");  
+    let entered = "";  
+    inputs.forEach(i=> entered += i.value);  
+    if (entered === generatedOTP) {  
+      showPopup("OTP Verified Successfully!");  
+      setTimeout(()=>{ hidePopup(); showPage("resetPage"); },1500);  
+    } else {  
+      showPopup("Invalid OTP!");  
+    }  
+  }  
 
-  // Reset Password
-  window.resetPassword = async function() {
-    let newPass = document.getElementById("newPass").value;
-    let confirmPass = document.getElementById("confirmPass").value;
-    if (!newPass || !confirmPass) return showPopup("Enter both passwords!");
-    if (newPass !== confirmPass) return showPopup("Passwords do not match!");
+  // Reset Password  
+  window.resetPassword = async function() {  
+    let newPass = document.getElementById("newPass").value;  
+    let confirmPass = document.getElementById("confirmPass").value;  
+    if (!newPass || !confirmPass) return showPopup("Enter both passwords!");  
+    if (newPass !== confirmPass) return showPopup("Passwords do not match!");  
 
-    try {
-      await update(ref(db, "users/" + selectedUserId), {
-        password: newPass,
-        updated_at: new Date().toISOString()
-      });
-      showPopup("Password Changed Successfully!");
-      setTimeout(()=>{ hidePopup(); showPage("searchPage"); },2000);
-    } catch (err) {
-      console.error(err);
-      showPopup("Error updating password!");
-    }
-  }
-</script>
-</body>
+    try {  
+      await update(ref(db, "users/" + selectedUserId), {  
+        password: newPass,  
+        updated_at: new Date().toISOString()  
+      });  
+      showPopup("Password Changed Successfully!");  
+      setTimeout(()=>{ hidePopup(); showPage("searchPage"); },2000);  
+    } catch (err) {  
+      console.error(err);  
+      showPopup("Error updating password!");  
+    }  
+  }  
+</script>  
+</body>  
 </html>
