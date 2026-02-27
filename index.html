@@ -153,7 +153,14 @@
   <p class="eyebrow">Account Security</p>
   <h1>RESET YOUR<br/><span>PASSWORD</span></h1>
 
-
+  <!-- Highlighted instruction -->
+  <div class="info-box">
+    <p>You can enter your:<br/>
+      <strong>📱 Mobile Number</strong> — 10 digits (e.g. 9876543210)<br/>
+      <strong>📧 Email Address</strong> — e.g. <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fc96939492bc9b919d9590d29f9391">[email&#160;protected]</a><br/>
+      <strong>🪪 User ID</strong> — 6 characters (e.g. ABC123)
+    </p>
+  </div>
 
   <form id="resetForm" autocomplete="off">
     <div class="field">
@@ -173,7 +180,7 @@
 
 <footer>© 2025 Aura Battle. All rights reserved.</footer>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2uVMvG-P2Vq0W9cZ8xpEHhS9jdeZ-g_XXDdyMJpQdnYgSrnC8M3ZtqPwkIO1D4uP2cQ/exec";
@@ -202,51 +209,14 @@ document.getElementById("identifier").addEventListener("input", function() {
   }
 });
 
-// ── Find user — tries phone, email, userId ────────────────────────
+// ── Find user — scans all users (works without Firebase index) ────
 async function findUser(raw) {
   const val    = raw.trim();
   const upper  = val.toUpperCase();
   const digits = val.replace(/\D/g, '');
 
-  // 1 ── Email (contains @)
-  if (val.includes("@")) {
-    try {
-      const snap = await db.ref("users").orderByChild("email").equalTo(val.toLowerCase()).get();
-      if (snap.exists()) {
-        const key = Object.keys(snap.val())[0];
-        const d   = snap.val()[key];
-        return { userId: key, email: d.email, name: d.name || "" };
-      }
-      // try original case too
-      const snap2 = await db.ref("users").orderByChild("email").equalTo(val).get();
-      if (snap2.exists()) {
-        const key = Object.keys(snap2.val())[0];
-        const d   = snap2.val()[key];
-        return { userId: key, email: d.email, name: d.name || "" };
-      }
-    } catch(e) { console.error("email lookup error:", e); }
-    return null;
-  }
-
-  // 2 ── Phone (10 digits)
-  if (digits.length === 10 && val.replace(/\D/g,'') === digits) {
-    try {
-      const snap = await db.ref("users").orderByChild("phone").equalTo(digits).get();
-      if (snap.exists()) {
-        const key = Object.keys(snap.val())[0];
-        const d   = snap.val()[key];
-        if (!d.email) return { error: "no_email" };
-        return { userId: key, email: d.email, name: d.name || "" };
-      }
-    } catch(e) {
-      console.error("phone lookup error:", e);
-      // Firebase may throw if index not set — fall through to userId check
-    }
-    return null;
-  }
-
-  // 3 ── User ID (6 alphanumeric chars)
-  if (/^[A-Z0-9]{4,8}$/.test(upper)) {
+  // 1 ── User ID: direct lookup (fastest, no scan)
+  if (!val.includes("@") && digits.length !== 10) {
     try {
       const snap = await db.ref("users").child(upper).get();
       if (snap.exists()) {
@@ -258,7 +228,38 @@ async function findUser(raw) {
     return null;
   }
 
-  return { error: "invalid_format" };
+  // 2 ── Email or Phone: scan all users and match locally
+  try {
+    const snap = await db.ref("users").get();
+    if (!snap.exists()) return null;
+
+    const allUsers = snap.val();
+    for (const userId in allUsers) {
+      const d = allUsers[userId];
+
+      // Email match (case-insensitive)
+      if (val.includes("@")) {
+        if (d.email && d.email.toLowerCase() === val.toLowerCase()) {
+          return { userId, email: d.email, name: d.name || "" };
+        }
+        continue;
+      }
+
+      // Phone match (compare 10 digits)
+      if (digits.length === 10) {
+        const storedDigits = (d.phone || "").replace(/\D/g, '');
+        if (storedDigits === digits) {
+          if (!d.email) return { error: "no_email" };
+          return { userId, email: d.email, name: d.name || "" };
+        }
+      }
+    }
+  } catch(e) {
+    console.error("scan error:", e);
+    return { error: "scan_failed" };
+  }
+
+  return null;
 }
 
 // ── Generate HMAC token ───────────────────────────────────────────
@@ -305,6 +306,10 @@ document.getElementById("resetForm").addEventListener("submit", async (e) => {
       showMsg("❌ Please enter a valid mobile number, email address, or User ID.", "error");
       btn.disabled = false; btn.textContent = "SEND RESET LINK"; return;
     }
+    if (user.error === "scan_failed") {
+      showMsg("❌ Could not connect to database. Please check your internet and try again.", "error");
+      btn.disabled = false; btn.textContent = "SEND RESET LINK"; return;
+    }
 
     btn.innerHTML = '<span class="spinner"></span>SENDING EMAIL...';
 
@@ -322,13 +327,4 @@ document.getElementById("resetForm").addEventListener("submit", async (e) => {
     const masked = user.email.replace(/(.{2}).+(@.+)/, '$1****$2');
     showMsg(`✅ Reset link sent to <strong>${masked}</strong>.<br/>Check your inbox and spam folder.`, "success");
 
-  } catch (err) {
-    console.error("Submit error:", err);
-    showMsg("❌ Something went wrong. Please try again in a moment.", "error");
-  }
-
-  btn.disabled = false; btn.textContent = "SEND RESET LINK";
-});
-</script>
-</body>
-</html>
+  } catch (
