@@ -377,35 +377,42 @@ function showMsg(text, type) {
   el.className   = `msg ${type} show`;
 }
 
+// ── Token key: short hash used as Firebase key ────────────────────
+function tokenKey(token) {
+  // use first 32 chars of the signature part as a safe Firebase key
+  return "rt_" + token.split('.')[1].substring(0, 32);
+}
+
 // ── Init: verify token from URL ───────────────────────────────────
 let tokenData = null;
+let rawToken  = null;
+
 (async () => {
   const params = new URLSearchParams(location.search);
-  const token  = params.get("t");
+  rawToken     = params.get("t");
 
-  if (!token) {
-    document.getElementById("formWrap").style.display    = "none";
+  function showInvalid(msg) {
+    document.getElementById("formWrap").style.display     = "none";
     document.getElementById("invalidState").style.display = "block";
+    document.getElementById("invalidMsg").textContent     = msg;
+  }
+
+  if (!rawToken) { showInvalid("No reset token found in this link."); return; }
+
+  tokenData = await verifyToken(rawToken);
+
+  if (!tokenData) { showInvalid("This reset link is invalid or has been tampered with."); return; }
+  if (tokenData.expired) { showInvalid("This reset link has expired. Links are valid for 1 hour only."); return; }
+
+  // ── Check if already used (saved in Firebase under resetTokens/) ──
+  const key      = tokenKey(rawToken);
+  const usedSnap = await db.ref(`resetTokens/${key}`).get();
+  if (usedSnap.exists()) {
+    showInvalid("This reset link has already been used. Please request a new one.");
     return;
   }
 
-  tokenData = await verifyToken(token);
-
-  if (!tokenData) {
-    document.getElementById("formWrap").style.display    = "none";
-    document.getElementById("invalidState").style.display = "block";
-    document.getElementById("invalidMsg").textContent    = "This reset link is invalid or has been tampered with.";
-    return;
-  }
-
-  if (tokenData.expired) {
-    document.getElementById("formWrap").style.display    = "none";
-    document.getElementById("invalidState").style.display = "block";
-    document.getElementById("invalidMsg").textContent    = "This reset link has expired. Links are valid for 1 hour only.";
-    return;
-  }
-
-  // valid — show form and start timer
+  // valid & unused — show form and start timer
   startTimer(tokenData.ts);
 })();
 
@@ -417,8 +424,8 @@ document.getElementById("pwForm").addEventListener("submit", async (e) => {
   const pw1 = document.getElementById("pw1").value;
   const pw2 = document.getElementById("pw2").value;
 
-  if (pw1.length < 6)  { showMsg("Password must be at least 6 characters.", "error"); return; }
-  if (pw1 !== pw2)     { showMsg("Passwords do not match.", "error"); return; }
+  if (pw1.length < 6) { showMsg("Password must be at least 6 characters.", "error"); return; }
+  if (pw1 !== pw2)    { showMsg("Passwords do not match.", "error"); return; }
 
   const btn = document.getElementById("saveBtn");
   btn.disabled = true;
@@ -432,16 +439,27 @@ document.getElementById("pwForm").addEventListener("submit", async (e) => {
       btn.disabled = false; btn.textContent = "SAVE NEW PASSWORD"; return;
     }
 
-    // update password field
-    await db.ref(`users/${tokenData.userId}`).update({ password: pw1 });
+    // ── Double-check token not used between page load and submit ──
+    const key      = tokenKey(rawToken);
+    const usedSnap = await db.ref(`resetTokens/${key}`).get();
+    if (usedSnap.exists()) {
+      showMsg("This link was already used. Please request a new reset link.", "error");
+      btn.disabled = false; btn.textContent = "SAVE NEW PASSWORD"; return;
+    }
 
-    showMsg("✓ Password updated successfully! You can now log in with your new password.", "success");
-    btn.disabled = true;
+    // ── Save new password + mark token as used (atomic) ──
+    await Promise.all([
+      db.ref(`users/${tokenData.userId}`).update({ password: pw1 }),
+      db.ref(`resetTokens/${key}`).set({
+        usedAt: Date.now(),
+        userId: tokenData.userId
+      })
+    ]);
+
+    showMsg("✓ Password updated! You can now log in with your new password.", "success");
+    btn.disabled    = true;
     btn.textContent = "PASSWORD SAVED";
     document.getElementById("timerLabel").textContent = "";
-
-    // redirect to app store / auth page after 3s (optional)
-    // setTimeout(() => { location.href = "index.html"; }, 3000);
 
   } catch (err) {
     console.error(err);
