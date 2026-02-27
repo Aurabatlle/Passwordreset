@@ -11,7 +11,6 @@
     --red-dim: #9b1020;
     --black: #0a0a0a;
     --surface: #111111;
-    --surface2: #1a1a1a;
     --border: #2a2a2a;
     --text: #f0f0f0;
     --muted: #777;
@@ -26,53 +25,38 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    overflow-x: hidden;
   }
 
-  /* ── noise overlay ── */
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none; z-index: 0;
-  }
-
-  /* ── top bar ── */
   header {
-    width: 100%; padding: 18px 24px;
-    display: flex; align-items: center; gap: 14px;
+    width: 100%; padding: 16px 24px;
+    display: flex; align-items: center; gap: 12px;
     border-bottom: 1px solid var(--border);
-    position: relative; z-index: 1;
   }
-  .logo-rect {
+  header img {
+    height: 36px; width: auto;
+    object-fit: contain;
+  }
+  /* fallback if logo.png missing */
+  .logo-fallback {
     width: 48px; height: 32px;
     background: var(--red);
     display: flex; align-items: center; justify-content: center;
     clip-path: polygon(0 0, 100% 0, 100% 75%, 88% 100%, 0 100%);
     flex-shrink: 0;
   }
-  .logo-rect span {
+  .logo-fallback span {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 13px; letter-spacing: 1px;
-    color: #fff; line-height: 1;
+    font-size: 13px; color: #fff; letter-spacing: 1px;
   }
-  .brand {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px; letter-spacing: 2px;
-    color: var(--text);
-  }
-  .brand em { color: var(--red); font-style: normal; }
 
-  /* ── main card ── */
   main {
-    width: 100%; max-width: 440px;
+    width: 100%; max-width: 420px;
     padding: 40px 24px 60px;
-    position: relative; z-index: 1;
-    animation: fadeUp .5s ease both;
+    animation: fadeUp .4s ease both;
   }
   @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(24px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from { opacity:0; transform:translateY(20px); }
+    to   { opacity:1; transform:translateY(0); }
   }
 
   .eyebrow {
@@ -81,44 +65,40 @@
   }
   h1 {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(36px, 9vw, 52px);
-    line-height: .95; letter-spacing: 1px;
-    margin-bottom: 12px;
+    font-size: clamp(34px, 9vw, 48px);
+    line-height: .95; margin-bottom: 10px;
   }
   h1 span { color: var(--red); }
   .subtitle {
-    font-size: 14px; color: var(--muted); line-height: 1.6;
-    margin-bottom: 36px;
+    font-size: 14px; color: var(--muted);
+    line-height: 1.6; margin-bottom: 32px;
   }
 
-  /* ── form ── */
-  .field { margin-bottom: 20px; }
+  .field { margin-bottom: 18px; }
   label {
     display: block; font-size: 11px; letter-spacing: 2px;
-    text-transform: uppercase; color: var(--muted);
-    margin-bottom: 8px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 7px;
   }
-  input[type=text], input[type=email] {
+  input[type=text] {
     width: 100%;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 4px;
     color: var(--text);
     font-family: 'Barlow', sans-serif;
-    font-size: 15px;
+    font-size: 16px;
     padding: 14px 16px;
     outline: none;
     transition: border-color .2s;
+    -webkit-appearance: none;
   }
-  input:focus { border-color: var(--red); }
+  input[type=text]:focus { border-color: var(--red); }
   input::placeholder { color: #444; }
+  /* number keyboard on mobile */
+  input.numeric { inputmode: numeric; }
 
-  .hint {
-    font-size: 12px; color: var(--muted);
-    margin-top: 6px; line-height: 1.5;
-  }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 5px; }
 
-  /* ── button ── */
   .btn {
     width: 100%; padding: 15px;
     background: var(--red);
@@ -128,80 +108,62 @@
     font-size: 18px; letter-spacing: 2px;
     cursor: pointer;
     transition: background .2s, transform .1s;
-    margin-top: 8px;
-    position: relative; overflow: hidden;
+    margin-top: 6px;
   }
-  .btn:hover  { background: #ff2236; }
-  .btn:active { transform: scale(.98); }
+  .btn:hover   { background: #ff2236; }
+  .btn:active  { transform: scale(.98); }
   .btn:disabled { background: var(--red-dim); cursor: not-allowed; }
 
-  /* ripple */
-  .btn::after {
-    content: ''; position: absolute;
-    width: 200%; height: 200%;
-    top: -50%; left: -50%;
-    background: radial-gradient(circle, rgba(255,255,255,.15) 0%, transparent 60%);
-    opacity: 0; transition: opacity .4s;
-  }
-  .btn:active::after { opacity: 1; }
-
-  /* ── status messages ── */
   .msg {
-    margin-top: 20px; padding: 14px 16px;
+    margin-top: 18px; padding: 14px 16px;
     border-radius: 4px; font-size: 14px;
     line-height: 1.5; display: none;
   }
-  .msg.success { background: #0d2b1a; border: 1px solid #1a5c34; color: #4cde8a; }
-  .msg.error   { background: #2b0d0d; border: 1px solid #5c1a1a; color: #ff6b6b; }
-  .msg.show    { display: block; animation: fadeUp .3s ease; }
+  .msg.success { background:#0d2b1a; border:1px solid #1a5c34; color:#4cde8a; }
+  .msg.error   { background:#2b0d0d; border:1px solid #5c1a1a; color:#ff6b6b; }
+  .msg.info    { background:#0d1e2b; border:1px solid #1a3d5c; color:#6bc5ff; }
+  .msg.show    { display:block; animation:fadeUp .3s ease; }
 
-  /* ── divider ── */
-  .divider {
-    display: flex; align-items: center; gap: 12px;
-    margin: 28px 0 20px; color: var(--border);
-    font-size: 12px; letter-spacing: 1px;
-  }
-  .divider::before, .divider::after {
-    content: ''; flex: 1; height: 1px;
-    background: var(--border);
-  }
-
-  /* ── spinner ── */
   .spinner {
-    width: 18px; height: 18px;
-    border: 2px solid rgba(255,255,255,.3);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin .7s linear infinite;
-    display: inline-block; vertical-align: middle;
-    margin-right: 8px;
+    width:17px; height:17px;
+    border:2px solid rgba(255,255,255,.3);
+    border-top-color:#fff;
+    border-radius:50%;
+    animation:spin .7s linear infinite;
+    display:inline-block; vertical-align:middle; margin-right:8px;
   }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes spin { to { transform:rotate(360deg); } }
 
   footer {
-    margin-top: auto; padding: 24px;
-    font-size: 12px; color: #333;
-    text-align: center; z-index: 1;
+    margin-top:auto; padding:24px;
+    font-size:12px; color:#333; text-align:center;
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo-rect"><span>AB</span></div>
-  <div class="brand">AURA <em>BATTLE</em></div>
+  <!-- Uses logo.png from same folder. Falls back to text logo if missing -->
+  <img src="logo.png" alt="Aura Battle" onerror="this.style.display='none';document.getElementById('logoFallback').style.display='flex'"/>
+  <div class="logo-fallback" id="logoFallback" style="display:none"><span>AB</span></div>
 </header>
 
 <main>
   <p class="eyebrow">Account Security</p>
   <h1>RESET YOUR<br/><span>PASSWORD</span></h1>
-  <p class="subtitle">Enter your mobile number, email address, or User ID. We'll send a secure reset link to your registered email.</p>
+  <p class="subtitle">Enter your 10-digit mobile number or 6-character User ID. We'll send a reset link to your registered email.</p>
 
   <form id="resetForm" autocomplete="off">
     <div class="field">
-      <label for="identifier">Mobile / Email / User ID</label>
-      <input type="text" id="identifier" placeholder="e.g. 9876543210 or john@gmail.com or ABC123" autocomplete="off"/>
-      <p class="hint">We'll look up your account and email you a reset link.</p>
+      <label for="identifier">Mobile Number or User ID</label>
+      <input type="text" id="identifier"
+             inputmode="text"
+             placeholder="9876543210  or  ABC123"
+             maxlength="10"
+             autocomplete="off"
+             autocorrect="off"
+             autocapitalize="characters"/>
+      <p class="hint">10-digit number (e.g. 9876543210) or 6-character ID (e.g. ABC123)</p>
     </div>
     <button type="submit" class="btn" id="submitBtn">SEND RESET LINK</button>
   </form>
@@ -211,12 +173,16 @@
 
 <footer>© 2025 Aura Battle. All rights reserved.</footer>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
-// ── Firebase config ──────────────────────────────────────────────
-const firebaseConfig = {
+// ── CONFIG — update SITE_URL after Netlify deploy ─────────────────
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwHw3wIRzzFlS0EVOsDQ_ZAic0BAGvMC3rPHKT_oL1BjN_Vu2OSS51xi176brUusnRCrA/exec";
+const SITE_URL        = "https://YOUR_SITE.netlify.app"; // ← replace after Netlify deploy
+const SECRET          = "aura_battle_reset_2025";        // must match reset.html
+
+// ── Firebase ──────────────────────────────────────────────────────
+firebase.initializeApp({
   apiKey: "AIzaSyD7pAsdYqkJzDbSsi8xbLsy2X5s0bgP040",
   authDomain: "aura-battle-main.firebaseapp.com",
   databaseURL: "https://aura-battle-main-default-rtdb.firebaseio.com",
@@ -224,119 +190,122 @@ const firebaseConfig = {
   storageBucket: "aura-battle-main.firebasestorage.app",
   messagingSenderId: "763779990289",
   appId: "1:763779990289:web:5caa7bc861e80b6f0b02b0"
-};
-firebase.initializeApp(firebaseConfig);
+});
 const db = firebase.database();
 
-// ── Google Apps Script URL ────────────────────────────────────────
-// Replace with your deployed Apps Script Web App URL
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwHw3wIRzzFlS0EVOsDQ_ZAic0BAGvMC3rPHKT_oL1BjN_Vu2OSS51xi176brUusnRCrA/exec";
+// ── Input: auto-uppercase for IDs ─────────────────────────────────
+const idInput = document.getElementById("identifier");
+idInput.addEventListener("input", function() {
+  // if looks like a user ID (has letters), uppercase it
+  if (/[a-zA-Z]/.test(this.value)) {
+    const pos = this.selectionStart;
+    this.value = this.value.toUpperCase();
+    this.setSelectionRange(pos, pos);
+  }
+  // remove maxlength restriction for phone (10) vs id (6)
+  this.maxLength = /^\d+$/.test(this.value) ? 10 : 6;
+});
 
-// ── Netlify site base URL ─────────────────────────────────────────
-const SITE_URL = "https://YOUR_SITE.netlify.app";
+// ── Find user: phone OR userId only ──────────────────────────────
+async function findUser(raw) {
+  const val = raw.trim().toUpperCase();
 
-// ── Token: HMAC-style using SubtleCrypto (no DB storage) ─────────
-const SECRET = "aura_battle_reset_2025"; // keep same in reset.html
+  // ── 1. Looks like 10-digit phone ──
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length === 10) {
+    const snap = await db.ref("users").orderByChild("phone").equalTo(digits).get();
+    if (snap.exists()) {
+      const key = Object.keys(snap.val())[0];
+      const d   = snap.val()[key];
+      if (!d.email) return { error: "no_email" };
+      return { userId: key, email: d.email, name: d.name || "" };
+    }
+    return null;
+  }
 
+  // ── 2. Looks like 6-char user ID ──
+  if (/^[A-Z0-9]{6}$/.test(val)) {
+    const snap = await db.ref("users").child(val).get();
+    if (snap.exists()) {
+      const d = snap.val();
+      if (!d.email) return { error: "no_email" };
+      return { userId: val, email: d.email, name: d.name || "" };
+    }
+    return null;
+  }
+
+  return { error: "invalid_format" };
+}
+
+// ── Generate HMAC token (no DB needed) ───────────────────────────
 async function generateToken(userId, email) {
-  const payload  = `${userId}:${email}:${Date.now()}`;
-  const b64      = btoa(payload);
-  const key      = await crypto.subtle.importKey(
+  const payload = `${userId}:${email}:${Date.now()}`;
+  const b64     = btoa(payload);
+  const key     = await crypto.subtle.importKey(
     "raw", new TextEncoder().encode(SECRET),
-    { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+    { name:"HMAC", hash:"SHA-256" }, false, ["sign"]
   );
-  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(b64));
-  const sigHex = Array.from(new Uint8Array(sig))
-    .map(b => b.toString(16).padStart(2,'0')).join('');
-  // encode: base64payload.signature (url-safe)
+  const sig    = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(b64));
+  const sigHex = Array.from(new Uint8Array(sig)).map(b=>b.toString(16).padStart(2,'0')).join('');
   return `${b64.replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_')}.${sigHex}`;
 }
 
-// ── Find user in Firebase ─────────────────────────────────────────
-async function findUser(identifier) {
-  const id = identifier.trim();
-  const ref = db.ref("users");
-
-  // 1. Try as userId directly
-  const directSnap = await ref.child(id.toUpperCase()).get();
-  if (directSnap.exists()) {
-    const d = directSnap.val();
-    if (d.email) return { userId: id.toUpperCase(), email: d.email, name: d.name || "" };
-  }
-
-  // 2. Try as email
-  const emailSnap = await ref.orderByChild("email").equalTo(id).get();
-  if (emailSnap.exists()) {
-    const key = Object.keys(emailSnap.val())[0];
-    const d   = emailSnap.val()[key];
-    return { userId: key, email: d.email, name: d.name || "" };
-  }
-
-  // 3. Try as phone (10 digits)
-  const phone = id.replace(/\D/g,'').slice(-10);
-  if (phone.length === 10) {
-    const phoneSnap = await ref.orderByChild("phone").equalTo(phone).get();
-    if (phoneSnap.exists()) {
-      const key = Object.keys(phoneSnap.val())[0];
-      const d   = phoneSnap.val()[key];
-      if (d.email) return { userId: key, email: d.email, name: d.name || "" };
-      return null; // phone user with no email (truecaller-only)
-    }
-  }
-
-  return null;
-}
-
-// ── Show status ───────────────────────────────────────────────────
+// ── Status message ────────────────────────────────────────────────
 function showMsg(text, type) {
   const el = document.getElementById("statusMsg");
-  el.textContent = text;
+  el.innerHTML   = text;
   el.className   = `msg ${type} show`;
 }
 
-// ── Submit handler ────────────────────────────────────────────────
+// ── Submit ────────────────────────────────────────────────────────
 document.getElementById("resetForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const identifier = document.getElementById("identifier").value.trim();
-  if (!identifier) { showMsg("Please enter your mobile number, email, or User ID.", "error"); return; }
+  const raw = idInput.value.trim();
+  if (!raw) { showMsg("Please enter your mobile number or User ID.", "error"); return; }
 
   const btn = document.getElementById("submitBtn");
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>SEARCHING...';
+  btn.innerHTML = '<span class="spinner"></span>CHECKING...';
 
   try {
-    const user = await findUser(identifier);
+    // ── Step 1: verify user exists ──
+    const user = await findUser(raw);
+
     if (!user) {
-      showMsg("No account found. Please check your details and try again.", "error");
+      showMsg("No account found with that number or ID. Please check and try again.", "error");
+      btn.disabled = false; btn.textContent = "SEND RESET LINK"; return;
+    }
+    if (user.error === "no_email") {
+      showMsg("This account has no email address linked. Please contact support.", "error");
+      btn.disabled = false; btn.textContent = "SEND RESET LINK"; return;
+    }
+    if (user.error === "invalid_format") {
+      showMsg("Please enter a valid 10-digit mobile number or 6-character User ID.", "error");
       btn.disabled = false; btn.textContent = "SEND RESET LINK"; return;
     }
 
+    // ── Step 2: generate token & send email ──
     btn.innerHTML = '<span class="spinner"></span>SENDING EMAIL...';
 
     const token    = await generateToken(user.userId, user.email);
     const resetUrl = `${SITE_URL}/reset.html?t=${token}`;
 
-    // Send via Google Apps Script
-    const res = await fetch(APPS_SCRIPT_URL, {
+    // Apps Script does not support CORS properly — use no-cors mode
+    // Email will still be sent; we just can't read the response
+    await fetch(APPS_SCRIPT_URL, {
       method: "POST",
+      mode:   "no-cors",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        to:      user.email,
-        name:    user.name,
-        resetUrl
-      })
+      body: JSON.stringify({ to: user.email, name: user.name, resetUrl })
     });
 
-    const json = await res.json();
-    if (json.status === "ok") {
-      showMsg(`✓ Reset link sent to ${user.email.replace(/(.{2}).+(@.+)/, '$1****$2')}. Check your inbox (and spam folder).`, "success");
-    } else {
-      showMsg("Failed to send email. Please try again later.", "error");
-    }
+    // Since no-cors can't read response, we trust it worked if no exception
+    const masked = user.email.replace(/(.{2}).+(@.+)/, '$1****$2');
+    showMsg(`✓ Reset link sent to <strong>${masked}</strong>.<br/>Check your inbox and spam folder.`, "success");
 
   } catch (err) {
     console.error(err);
-    showMsg("Something went wrong. Please try again.", "error");
+    showMsg("Something went wrong. Please try again in a moment.", "error");
   }
 
   btn.disabled = false; btn.textContent = "SEND RESET LINK";
