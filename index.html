@@ -13,7 +13,7 @@
     --surface: #111111;
     --border: #2a2a2a;
     --text: #f0f0f0;
-    --muted: #777;
+    --muted: #888;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -32,16 +32,11 @@
     display: flex; align-items: center; gap: 12px;
     border-bottom: 1px solid var(--border);
   }
-  header img {
-    height: 36px; width: auto;
-    object-fit: contain;
-  }
-  /* fallback if logo.png missing */
+  header img { height: 36px; width: auto; object-fit: contain; }
   .logo-fallback {
-    width: 48px; height: 32px;
-    background: var(--red);
+    width: 48px; height: 32px; background: var(--red);
     display: flex; align-items: center; justify-content: center;
-    clip-path: polygon(0 0, 100% 0, 100% 75%, 88% 100%, 0 100%);
+    clip-path: polygon(0 0,100% 0,100% 75%,88% 100%,0 100%);
     flex-shrink: 0;
   }
   .logo-fallback span {
@@ -66,15 +61,25 @@
   h1 {
     font-family: 'Bebas Neue', sans-serif;
     font-size: clamp(34px, 9vw, 48px);
-    line-height: .95; margin-bottom: 10px;
+    line-height: .95; margin-bottom: 16px;
   }
   h1 span { color: var(--red); }
-  .subtitle {
-    font-size: 14px; color: var(--muted);
-    line-height: 1.6; margin-bottom: 32px;
-  }
 
-  .field { margin-bottom: 18px; }
+  /* ── highlighted instruction box ── */
+  .info-box {
+    background: #1a0d0d;
+    border: 1px solid var(--red);
+    border-left: 4px solid var(--red);
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin-bottom: 28px;
+  }
+  .info-box p {
+    font-size: 14px; color: #f0f0f0; line-height: 1.7; margin: 0;
+  }
+  .info-box strong { color: var(--red); }
+
+  .field { margin-bottom: 20px; }
   label {
     display: block; font-size: 11px; letter-spacing: 2px;
     text-transform: uppercase; color: var(--muted); margin-bottom: 7px;
@@ -94,10 +99,8 @@
   }
   input[type=text]:focus { border-color: var(--red); }
   input::placeholder { color: #444; }
-  /* number keyboard on mobile */
-  input.numeric { inputmode: numeric; }
 
-  .hint { font-size: 12px; color: var(--muted); margin-top: 5px; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
 
   .btn {
     width: 100%; padding: 15px;
@@ -108,7 +111,7 @@
     font-size: 18px; letter-spacing: 2px;
     cursor: pointer;
     transition: background .2s, transform .1s;
-    margin-top: 6px;
+    margin-top: 4px;
   }
   .btn:hover   { background: #ff2236; }
   .btn:active  { transform: scale(.98); }
@@ -117,18 +120,16 @@
   .msg {
     margin-top: 18px; padding: 14px 16px;
     border-radius: 4px; font-size: 14px;
-    line-height: 1.5; display: none;
+    line-height: 1.6; display: none;
   }
   .msg.success { background:#0d2b1a; border:1px solid #1a5c34; color:#4cde8a; }
   .msg.error   { background:#2b0d0d; border:1px solid #5c1a1a; color:#ff6b6b; }
-  .msg.info    { background:#0d1e2b; border:1px solid #1a3d5c; color:#6bc5ff; }
   .msg.show    { display:block; animation:fadeUp .3s ease; }
 
   .spinner {
     width:17px; height:17px;
     border:2px solid rgba(255,255,255,.3);
-    border-top-color:#fff;
-    border-radius:50%;
+    border-top-color:#fff; border-radius:50%;
     animation:spin .7s linear infinite;
     display:inline-block; vertical-align:middle; margin-right:8px;
   }
@@ -143,27 +144,26 @@
 <body>
 
 <header>
-  <!-- Uses logo.png from same folder. Falls back to text logo if missing -->
-  <img src="logo.png" alt="Aura Battle" onerror="this.style.display='none';document.getElementById('logoFallback').style.display='flex'"/>
+  <img src="logo.png" alt="Aura Battle"
+       onerror="this.style.display='none';document.getElementById('logoFallback').style.display='flex'"/>
   <div class="logo-fallback" id="logoFallback" style="display:none"><span>AB</span></div>
 </header>
 
 <main>
   <p class="eyebrow">Account Security</p>
   <h1>RESET YOUR<br/><span>PASSWORD</span></h1>
-  <p class="subtitle">Enter your 10-digit mobile number or 6-character User ID. We'll send a reset link to your registered email.</p>
+
+
 
   <form id="resetForm" autocomplete="off">
     <div class="field">
-      <label for="identifier">Mobile Number or User ID</label>
+      <label for="identifier">Mobile / Email / User ID</label>
       <input type="text" id="identifier"
-             inputmode="text"
-             placeholder="9876543210  or  ABC123"
-             maxlength="10"
+             placeholder="Enter mobile, email or User ID"
              autocomplete="off"
              autocorrect="off"
-             autocapitalize="characters"/>
-      <p class="hint">10-digit number (e.g. 9876543210) or 6-character ID (e.g. ABC123)</p>
+             spellcheck="false"/>
+      <p class="hint">We'll send a reset link to your registered email address.</p>
     </div>
     <button type="submit" class="btn" id="submitBtn">SEND RESET LINK</button>
   </form>
@@ -176,12 +176,10 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
-// ── CONFIG — update SITE_URL after Netlify deploy ─────────────────
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwHw3wIRzzFlS0EVOsDQ_ZAic0BAGvMC3rPHKT_oL1BjN_Vu2OSS51xi176brUusnRCrA/exec";
-const SITE_URL        = "https://YOUR_SITE.netlify.app"; // ← replace after Netlify deploy
-const SECRET          = "aura_battle_reset_2025";        // must match reset.html
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2uVMvG-P2Vq0W9cZ8xpEHhS9jdeZ-g_XXDdyMJpQdnYgSrnC8M3ZtqPwkIO1D4uP2cQ/exec";
+const SITE_URL        = "https://resetpassword-aurabattle.netlify.app";
+const SECRET          = "aura_battle_reset_2025"; // must match reset.html
 
-// ── Firebase ──────────────────────────────────────────────────────
 firebase.initializeApp({
   apiKey: "AIzaSyD7pAsdYqkJzDbSsi8xbLsy2X5s0bgP040",
   authDomain: "aura-battle-main.firebaseapp.com",
@@ -193,51 +191,77 @@ firebase.initializeApp({
 });
 const db = firebase.database();
 
-// ── Input: auto-uppercase for IDs ─────────────────────────────────
-const idInput = document.getElementById("identifier");
-idInput.addEventListener("input", function() {
-  // if looks like a user ID (has letters), uppercase it
-  if (/[a-zA-Z]/.test(this.value)) {
+// ── Auto-uppercase only if it's a pure letter/number ID ───────────
+document.getElementById("identifier").addEventListener("input", function() {
+  const v = this.value;
+  // only uppercase if no @ (not an email) and no spaces
+  if (!v.includes("@") && !v.includes(" ")) {
     const pos = this.selectionStart;
-    this.value = this.value.toUpperCase();
+    this.value = v.toUpperCase();
     this.setSelectionRange(pos, pos);
   }
-  // remove maxlength restriction for phone (10) vs id (6)
-  this.maxLength = /^\d+$/.test(this.value) ? 10 : 6;
 });
 
-// ── Find user: phone OR userId only ──────────────────────────────
+// ── Find user — tries phone, email, userId ────────────────────────
 async function findUser(raw) {
-  const val = raw.trim().toUpperCase();
+  const val    = raw.trim();
+  const upper  = val.toUpperCase();
+  const digits = val.replace(/\D/g, '');
 
-  // ── 1. Looks like 10-digit phone ──
-  const digits = raw.replace(/\D/g, '');
-  if (digits.length === 10) {
-    const snap = await db.ref("users").orderByChild("phone").equalTo(digits).get();
-    if (snap.exists()) {
-      const key = Object.keys(snap.val())[0];
-      const d   = snap.val()[key];
-      if (!d.email) return { error: "no_email" };
-      return { userId: key, email: d.email, name: d.name || "" };
+  // 1 ── Email (contains @)
+  if (val.includes("@")) {
+    try {
+      const snap = await db.ref("users").orderByChild("email").equalTo(val.toLowerCase()).get();
+      if (snap.exists()) {
+        const key = Object.keys(snap.val())[0];
+        const d   = snap.val()[key];
+        return { userId: key, email: d.email, name: d.name || "" };
+      }
+      // try original case too
+      const snap2 = await db.ref("users").orderByChild("email").equalTo(val).get();
+      if (snap2.exists()) {
+        const key = Object.keys(snap2.val())[0];
+        const d   = snap2.val()[key];
+        return { userId: key, email: d.email, name: d.name || "" };
+      }
+    } catch(e) { console.error("email lookup error:", e); }
+    return null;
+  }
+
+  // 2 ── Phone (10 digits)
+  if (digits.length === 10 && val.replace(/\D/g,'') === digits) {
+    try {
+      const snap = await db.ref("users").orderByChild("phone").equalTo(digits).get();
+      if (snap.exists()) {
+        const key = Object.keys(snap.val())[0];
+        const d   = snap.val()[key];
+        if (!d.email) return { error: "no_email" };
+        return { userId: key, email: d.email, name: d.name || "" };
+      }
+    } catch(e) {
+      console.error("phone lookup error:", e);
+      // Firebase may throw if index not set — fall through to userId check
     }
     return null;
   }
 
-  // ── 2. Looks like 6-char user ID ──
-  if (/^[A-Z0-9]{6}$/.test(val)) {
-    const snap = await db.ref("users").child(val).get();
-    if (snap.exists()) {
-      const d = snap.val();
-      if (!d.email) return { error: "no_email" };
-      return { userId: val, email: d.email, name: d.name || "" };
-    }
+  // 3 ── User ID (6 alphanumeric chars)
+  if (/^[A-Z0-9]{4,8}$/.test(upper)) {
+    try {
+      const snap = await db.ref("users").child(upper).get();
+      if (snap.exists()) {
+        const d = snap.val();
+        if (!d.email) return { error: "no_email" };
+        return { userId: upper, email: d.email, name: d.name || "" };
+      }
+    } catch(e) { console.error("userId lookup error:", e); }
     return null;
   }
 
   return { error: "invalid_format" };
 }
 
-// ── Generate HMAC token (no DB needed) ───────────────────────────
+// ── Generate HMAC token ───────────────────────────────────────────
 async function generateToken(userId, email) {
   const payload = `${userId}:${email}:${Date.now()}`;
   const b64     = btoa(payload);
@@ -250,62 +274,57 @@ async function generateToken(userId, email) {
   return `${b64.replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_')}.${sigHex}`;
 }
 
-// ── Status message ────────────────────────────────────────────────
 function showMsg(text, type) {
   const el = document.getElementById("statusMsg");
-  el.innerHTML   = text;
-  el.className   = `msg ${type} show`;
+  el.innerHTML = text;
+  el.className = `msg ${type} show`;
 }
 
 // ── Submit ────────────────────────────────────────────────────────
 document.getElementById("resetForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const raw = idInput.value.trim();
-  if (!raw) { showMsg("Please enter your mobile number or User ID.", "error"); return; }
+  const raw = document.getElementById("identifier").value.trim();
+  if (!raw) { showMsg("Please enter your mobile number, email, or User ID.", "error"); return; }
 
   const btn = document.getElementById("submitBtn");
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>CHECKING...';
+  btn.innerHTML = '<span class="spinner"></span>SEARCHING...';
 
   try {
-    // ── Step 1: verify user exists ──
     const user = await findUser(raw);
 
     if (!user) {
-      showMsg("No account found with that number or ID. Please check and try again.", "error");
+      showMsg("❌ No account found. Please check your details and try again.", "error");
       btn.disabled = false; btn.textContent = "SEND RESET LINK"; return;
     }
     if (user.error === "no_email") {
-      showMsg("This account has no email address linked. Please contact support.", "error");
+      showMsg("❌ This account has no email address linked. Please contact support.", "error");
       btn.disabled = false; btn.textContent = "SEND RESET LINK"; return;
     }
     if (user.error === "invalid_format") {
-      showMsg("Please enter a valid 10-digit mobile number or 6-character User ID.", "error");
+      showMsg("❌ Please enter a valid mobile number, email address, or User ID.", "error");
       btn.disabled = false; btn.textContent = "SEND RESET LINK"; return;
     }
 
-    // ── Step 2: generate token & send email ──
     btn.innerHTML = '<span class="spinner"></span>SENDING EMAIL...';
 
     const token    = await generateToken(user.userId, user.email);
     const resetUrl = `${SITE_URL}/reset.html?t=${token}`;
 
-    // Apps Script does not support CORS properly — use no-cors mode
-    // Email will still be sent; we just can't read the response
+    // no-cors required for Google Apps Script
     await fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      mode:   "no-cors",
+      method:  "POST",
+      mode:    "no-cors",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ to: user.email, name: user.name, resetUrl })
+      body:    JSON.stringify({ to: user.email, name: user.name, resetUrl })
     });
 
-    // Since no-cors can't read response, we trust it worked if no exception
     const masked = user.email.replace(/(.{2}).+(@.+)/, '$1****$2');
-    showMsg(`✓ Reset link sent to <strong>${masked}</strong>.<br/>Check your inbox and spam folder.`, "success");
+    showMsg(`✅ Reset link sent to <strong>${masked}</strong>.<br/>Check your inbox and spam folder.`, "success");
 
   } catch (err) {
-    console.error(err);
-    showMsg("Something went wrong. Please try again in a moment.", "error");
+    console.error("Submit error:", err);
+    showMsg("❌ Something went wrong. Please try again in a moment.", "error");
   }
 
   btn.disabled = false; btn.textContent = "SEND RESET LINK";
